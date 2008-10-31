@@ -1,46 +1,64 @@
+require 'rubygems'
+
 module Palettes
   module ColourLovers
+    require 'httparty'
+    
     class Palette
       include Palettes::Mixin
  
-      # It's a Party!
-      require 'httparty'
-      include HTTParty
-      base_uri 'colourlovers.com'
-      default_params :format => 'json'
-      format :json
- 
       def initialize(palette_id, names=false)
-        get_palette(palette_id, names)
-      end
- 
-      def get_palette(palette_id, names=false)
-        raise ArgumentError unless palette_id.is_a? Integer
-        @palette = get("api/palette/#{palette_id}")
-        colors = @palette['colors']
- 
-        if names
-          cnames=[]
-          colors.each do |c|
-            cnames << get("api/color/#{c}")[:title]
-          end
-          fill colors.map! { |c| [cnames.shift, c] }
-        else
-          fill colors
-        end
-      end
- 
-      def search(*keywords)
-        words = keywords.inject {|ret,kw| ret += "+#{kw}"} if keywords.respond_to? :last
-        words.gsub!(' ','+')
- 
-        get("api/palettes", :query => { :keywords => words })
+        @palette = self.class.get_palette(palette_id, names)
       end
  
       # Return the raw hash response provided by HTTParty
       def response
         @palette
       end
+      
+      # CLASS METHODS!
+      include HTTParty
+    
+      base_uri 'www.colourlovers.com'
+      default_params :format => 'json'
+      format :json
+  
+      # Returns { :title => id }
+      def self.search(*keywords)
+        words = keywords.inject {|result,keywword| result += "+#{keyword}"} if keywords.respond_to? :last
+        words.gsub!(' ','+')
+
+        palettes = get("/api/palettes", :query => { :keywords => words })
+        
+        titles = []; ids = []
+        palettes.each do |palette|
+          titles << palette['title']
+          ids << palette['id']
+        end
+        composites={}
+        (0..(titles.length-1)).each {|x| composites[titles[x]] = ids[x]}
+        composites
+      end
+    
+      def self.get_palette(palette_id, names=false)
+        #raise ArgumentError unless palette_id.is_a? Integer
+        @palette = get("/api/palette/#{palette_id.to_s}")
+        @palette.each {|x| puts "XxXx:X:#{x}"}
+        colors = @palette['colors']
+        puts @palette
+
+        if names
+          color_names=[]
+          colors.each do |c|
+            response = get("/api/color/#{c.to_s}")
+            color_names << response['colors']['color']['title']
+          end
+          colors.map! { |c| [color_names.shift, c] }
+        else
+          colors
+        end
+      end
+      
     end
   end
 end
