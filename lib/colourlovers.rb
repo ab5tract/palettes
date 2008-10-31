@@ -1,5 +1,7 @@
 require 'rubygems'
 
+require 'mixin'
+
 module Palettes
   module ColourLovers
     require 'httparty'
@@ -43,15 +45,13 @@ module Palettes
       def self.get_palette(palette_id, names=false)
         #raise ArgumentError unless palette_id.is_a? Integer
         @palette = get("/api/palette/#{palette_id.to_s}")
-        @palette.each {|x| puts "XxXx:X:#{x}"}
-        colors = @palette['colors']
-        puts @palette
-
+        colors ||= @palette.pop['colors']
+        
         if names
           color_names=[]
           colors.each do |c|
             response = get("/api/color/#{c.to_s}")
-            color_names << response['colors']['color']['title']
+            color_names << response.pop['title']
           end
           colors.map! { |c| [color_names.shift, c] }
         else
