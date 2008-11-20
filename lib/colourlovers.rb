@@ -1,5 +1,7 @@
+# Gems
 require 'rubygems'
 
+# Application Local
 require 'mixin'
 
 module Palettes
@@ -10,11 +12,6 @@ module Palettes
 
     def initialize(palette_id, names=false)
       @palette = self.class.get_palette(palette_id, names)
-    end
-
-    # Return the raw hash response provided by HTTParty
-    def raw
-      @palette
     end
     
     # CLASS METHODS!
