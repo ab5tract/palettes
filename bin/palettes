@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+
+$: << "#{File.dirname(__FILE__)}/../lib/waves"
+
+require 'rubygems'
+require 'waves'
+
+require 'runtime/server'
+
+begin
+  Waves::Server.run( :startup => "startup.rb" )
+rescue LoadError => e
+  puts e.message
+end

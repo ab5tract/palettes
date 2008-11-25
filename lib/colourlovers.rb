@@ -1,58 +1,58 @@
 # Gems
 require 'rubygems'
+require 'json'
+require 'net/http'
+
+
+def Kernel.engine; defined?(RUBY_ENGINE) ? RUBY_ENGINE : 'mri'; end
+require 'jruby/openssl/gem_only' if Kernel.engine == 'jruby'
 
 # Application Local
 require 'mixin'
 
 module Palettes
   class ColourLovers
-    require 'httparty'
     
     include Palettes::Mixin
 
     def initialize(palette_id, names=false)
       @palette = self.class.get_palette(palette_id, names)
     end
-    
-    # CLASS METHODS!
-    include HTTParty
-  
-    base_uri 'www.colourlovers.com'
-#      default_params :format => 'json'
-#      format :json
 
-    default_params :format => 'xml'
-    format :xml
 
     # Returns { :title => id }
     def self.search(*keywords)
-      words = keywords.inject {|result,keywword| result += "+#{keyword}"} if keywords.respond_to? :last
-      words.gsub!(' ','+')
+      if keywords.respond_to? :assoc
+        words = keywords.inject {|result,keyword| result += "+#{keyword}"}
+        words.gsub!(' ','+')
+      else
+        words = keywords.gsub(' ','+')
+      end
 
-      palettes = get("/api/palettes", :query => { :keywords => words })
-      palettes = palettes['palettes']['palette'] # This gets us the array of palette hashes
+      palettes = ColourLovers.grab_list(words)
+      return nil if palettes.empty?
       titles = []; ids = []; colors = []; creators = []
       palettes.each do |palette|
         titles << palette['title']
         ids << palette['id']
-        colors << palette['colors']['hex']
+        colors << palette['colors']
         creators << palette['userName']
       end
-      composites={}
-      (0..(titles.length-1)).each {|x| composites[titles[x]] = {:id => ids[x], :colors => colors[x], :creator => creators[x]} }
+      composites=[]
+      (0..(titles.length-1)).each {|x| composites[x] = {:title => titles[x], :id => ids[x], :colors => colors[x], :creator => creators[x]} }
       composites
     end
   
     def self.get_palette(palette_id, names=false)
       #raise ArgumentError unless palette_id.is_a? Integer
-      @palette = get("/api/palette/#{palette_id.to_s}")
-      colors ||= @palette['palettes']['palette']['colors']['hex']
+      @palette = ColourLovers.grab_single palette_id.to_s
+      colors ||= @palette.pop['colors']
       
       if names
         color_names=[]
         colors.each do |c|
-          response = get("/api/color/#{c.to_s}")
-          color_names << response['colors']['color']['title']
+          response = JSON.load( Net::HTTP.get( URI.parse "http://www.colourlovers.com/api/color/#{c.to_s}?format=json" ))
+          color_names << response.pop['title']
         end
         colors.map! { |c| [color_names.shift, c] }
       else
@@ -60,5 +60,19 @@ module Palettes
       end
     end
 
+    private
+    def ColourLovers.grab_list(args)
+      if args.is_a? Hash
+          raise ArgumentError if args[:keywords].nil?
+          params = args.inject {|p,(a,v)| p + "#{a}=#{b}&" } # We will always add a format, so don't fear the trailing '&'
+      else
+          params = "keywords=#{args}&" if args.is_a? String
+      end
+      json = JSON.load( Net::HTTP.get( URI.parse 'http://www.colourlovers.com/api/palettes?' + params + 'format=json' ))
+    end
+
+    def ColourLovers.grab_single(palette_id)
+      json = JSON.load( Net::HTTP.get( URI.parse "http://www.colourlovers.com/api/palette/#{palette_id}?format=json" ))
+    end
   end
 end
