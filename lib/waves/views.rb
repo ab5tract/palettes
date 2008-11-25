@@ -1,3 +1,4 @@
+require 'hoshi'
 require 'cassandra'
 
 module Views
@@ -84,7 +85,7 @@ module Views
               padding('0')
             }
 
-            ul.colors { list_style(:none); margin("0") }
+            ul.colors { list_style(:none); margin("0"); padding("0") }
             li.colors { margin_left("3px") }
             ol.palettes { list_style(:none); position(:relative) }
             body { position(:relative) }
@@ -111,12 +112,12 @@ module Views
                 }#td (loop)
               } }#tr, table.colors
               div(:class => "info_box") {
-                h2 { a(:href => "http://colourlovers.com/palette/#{r[:id].to_s}") { raw "Palette #{r[:id].to_s}" } }
+                h3 { a(:href => "http://colourlovers.com/palette/#{r[:id].to_s}") { raw "#{r[:title].to_s}" } }
                 dl(:class => "info") {
-                  dt { raw "Title: " }
-                  dd { raw "#{r[:title]}"}
                   dt { raw "Creator: " }
                   dd { raw "#{r[:creator]}"}
+                  dt { raw "ID: " }
+                  dd { raw "#{r[:id]}"}
                   dt { raw "Colors: " }
                   dd { ul(:class => "colors") { r[:colors].each {|color| li(:class=>"colors") { raw "##{color}" } }}}
                 }#dl.info
