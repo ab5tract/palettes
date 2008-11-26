@@ -1,0 +1,41 @@
+= Palettes
+=== A Simple Interface to Glorious Possiblity
+via ab5tract
+
+== History
+
+Palettes began when I saw the butterfly page at colourlovers.com and realized how nice it would be to have a simple
+way to get those pretty palettes into an array or hash to use with Cassandra. The initial library just supported some
+basic API interaction with ColourLovers. It quickly became apparent that Palettes was destined to become a Waves app,
+not to run on a server but as a tool on your own box.
+
+== Present
+
+Palettes has one main feature at this point, which is to fetch palette search results in an easy-to-copy-the-colors
+format. This is the Waves interface and can be run with the command 'palettes'.
+
+It's side feature is a quick way to get the colors of colourLovers palettes using the palette ID number.
+
+p = Palettes::ColourLovers.new palette_id
+# Hexadecimal color value
+p.colors[0].length == 6
+=> true
+
+# Colors have names now, represented internally using the format [[name,color], ..]
+p = Palettes::ColorLovers.new palette_id, true
+p.colors.is_a? Array
+=> true
+p['this_color'].length == 6
+=> true
+p.to_hash.is_a? Hash
+=> true
+
+== Future
+
+Palettes wants to help. That's why it is growing JavaScript to copy color values to your clipboard in a number of
+formats including unnamed arrays and named arrays and hashes. That makes it easy to set up your colors in Cassandra.
+Along with this comes AJAX for nicer loading and a few cosmetic features.
+Also:
+- Palette construction in AJAX
+- Support for GregorR's colormatching neural network
+- Full ColourLovers API as a secondary feature of the gem

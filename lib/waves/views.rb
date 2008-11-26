@@ -108,16 +108,16 @@ module Views
                   td(:class => 'color_bar', :title => "##{color}",
                   :style => " width: #{440/r[:colors].length}px;
                               color: ##{color};
-                              background-color: ##{color}") { raw "##{color}" }
+                              background-color: ##{color}") { raw "#{color}" }
                 }#td (loop)
               } }#tr, table.colors
               div(:class => "info_box") {
                 h3 { a(:href => "http://colourlovers.com/palette/#{r[:id].to_s}") { raw "#{r[:title].to_s}" } }
                 dl(:class => "info") {
                   dt { raw "Creator: " }
-                  dd { raw "#{r[:creator]}"}
+                  dd { raw "#{r[:creator]}" }
                   dt { raw "ID: " }
-                  dd { raw "#{r[:id]}"}
+                  dd { raw "#{r[:id]}" }
                   dt { raw "Colors: " }
                   dd { ul(:class => "colors") { r[:colors].each {|color| li(:class=>"colors") { raw "##{color}" } }}}
                 }#dl.info
